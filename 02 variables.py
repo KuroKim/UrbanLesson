@@ -5,7 +5,7 @@
 # Название курса (запишите значение 'Python')
 # Время на одно задание (вычислить используя 1 и 2 переменные)
 # Выведите на экран(в консоль), используя переменные, следующую строку:
-# Курс: Python, всего задач:12, затрачено часов: 1.5, среднее время выполнения 0.125 часа.
+# Курс: Python, всего задач: 12, затрачено часов: 1.5, среднее время выполнения 0.125 часа.
 
 completed_tasks = 12
 
@@ -13,7 +13,7 @@ wasted_hours = 1.5
 
 name = 'Python'
 
-time_per_task = completed_tasks + wasted_hours
+time_per_task = completed_tasks / wasted_hours
 
-print(f'Курс: {name}, всего задач: {completed_tasks}, затрачено часов: {wasted_hours},'
+print(f'Курс: {name}, всего задач: {completed_tasks}, затрачено часов: {wasted_hours}, '
       f'среднее время выполнения {time_per_task}')

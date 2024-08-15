@@ -29,9 +29,11 @@ print(a)
 print(my_dict)
 
 
-my_set = {1, 2, "String", False, 1, 2.3}
-print(my_set)
-my_set.add(4)
-my_set.add(6)
+my_set = {1, 2, "String", False, 1, 2, "String", 2.68}
 print(my_set)
 
+my_set.update({3, 4, 5})
+print(my_set)
+
+my_set.discard(2)
+print(my_set)

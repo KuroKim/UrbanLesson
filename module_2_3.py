@@ -7,17 +7,17 @@
 # Напишите цикл while с соответствующими задаче условиями.
 # Используйте операторы прерывания/продолжения цикла в соответствии с условиями задачи.
 
-my_list = [42, 69, 322, 13, 0, 99, -5, 9, 8, 7, -6, 5]
+my_list = [42, 0, 0, 69, 322, 13, 0, 99, -5, 9, 8, 7, -6, 5]
 
 zero = 0
 
-while my_list[zero] >= 0:
-    print(my_list[zero])
-    zero += 1
-
-    if my_list[zero] == 0:
-        my_list.pop(zero)
-
-    elif zero == len(my_list):
+while zero < len(my_list):
+    if my_list[zero] < 0:
         break
 
+    elif my_list[zero] == 0:
+        zero += 1
+        continue
+
+    print(my_list[zero])
+    zero += 1

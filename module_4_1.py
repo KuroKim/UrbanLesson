@@ -28,8 +28,8 @@
 # Деление в задаче обычное - '/'.
 # Не забудьте при импорте функций divide из разных модулей переопределить их названия.
 
-from _fake_math import divide as fake_divide
-from _true_math import divide as true_divide
+from m4_1_fake_math import divide as fake_divide
+from m4_1_true_math import divide as true_divide
 
 
 result1 = fake_divide(69, 3)

@@ -21,12 +21,13 @@ def custom_write(file_name, strings):
     with open(file_name, 'w', encoding='utf-8') as file:
         strings_positions = {}
         for i, string in enumerate(strings, start=1):
+            position = file.tell()
             file.write(string + '\n')
-            strings_positions[(i, file.tell() - len(string) - 1)] = string
+            strings_positions[(i, position)] = string
         return strings_positions
-    file.close()
 
 
+# Пример использования
 info = [
     'Text for tell.',
     'Используйте кодировку utf-8.',

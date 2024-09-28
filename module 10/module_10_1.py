@@ -63,4 +63,3 @@ for thread in threads:
 
 end_time = time()
 print(f"Время выполнения в потоках: {end_time - start_time:.2f} секунд")
-

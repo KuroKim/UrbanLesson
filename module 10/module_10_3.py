@@ -34,38 +34,55 @@ class Bank:
         self.lock = threading.Lock()
 
     def deposit(self):
-        for _ in range(10):
-            with self.lock:
-                amount = random.randint(50, 500)
+        for _ in range(100):
+            amount = random.randint(50, 500)
+
+            self.lock.acquire()
+            try:
                 self.balance += amount
                 print(f'Пополнение: {amount}. Баланс: {self.balance}')
+
+                if self.balance >= 500 and self.lock.locked():
+                    self.lock.release()
+
+            finally:
+                self.lock.release()
 
             time.sleep(0.001)
 
     def take(self):
-        for _ in range(10):
-            with self.lock:
-                amount = random.randint(50, 500)
-                print(f'Запрос на {amount}')
+        for _ in range(100):
+            amount = random.randint(50, 500)
+            print(f'Запрос на {amount}')
 
+            self.lock.acquire()
+            try:
                 if amount <= self.balance:
                     self.balance -= amount
                     print(f'Снятие: {amount}. Баланс: {self.balance}')
                 else:
                     print('Запрос отклонён, недостаточно средств')
+                    self.lock.acquire()
+
+            finally:
+                self.lock.release()
 
             time.sleep(0.001)
 
 
 bank = Bank()
 
+# Создаём потоки для пополнения и снятия средств
 deposit_thread = threading.Thread(target=bank.deposit)
 take_thread = threading.Thread(target=bank.take)
 
+# Запускаем потоки
 deposit_thread.start()
 take_thread.start()
 
+# Ожидаем завершения потоков
 deposit_thread.join()
 take_thread.join()
 
+# Итоговый баланс
 print(f'Итоговый баланс: {bank.balance}')

@@ -31,43 +31,38 @@ import time
 class Bank:
     def __init__(self):
         self.balance = 0
-        self.lock = threading.Lock()
+        self.lock = threading.Lock()  # Замок для блокировки потоков
 
     def deposit(self):
-        for _ in range(100):
+        for _ in range(100):  # Совершаем 100 транзакций пополнения
             amount = random.randint(50, 500)
 
-            self.lock.acquire()
-            try:
+            # Явно блокируем поток для изменения баланса
+            with self.lock:
                 self.balance += amount
                 print(f'Пополнение: {amount}. Баланс: {self.balance}')
 
-                if self.balance >= 500 and self.lock.locked():
-                    self.lock.release()
-
-            finally:
-                self.lock.release()
-
+            # Имитируем задержку
             time.sleep(0.001)
 
     def take(self):
-        for _ in range(100):
+        for _ in range(100):  # Совершаем 100 транзакций снятия
             amount = random.randint(50, 500)
             print(f'Запрос на {amount}')
 
-            self.lock.acquire()
-            try:
+            # Явно блокируем поток для проверки и изменения баланса
+            with self.lock:
+                # Проверяем, хватает ли средств для снятия
                 if amount <= self.balance:
                     self.balance -= amount
                     print(f'Снятие: {amount}. Баланс: {self.balance}')
                 else:
                     print('Запрос отклонён, недостаточно средств')
-                    self.lock.acquire()
 
-            finally:
-                self.lock.release()
-
+            # Имитируем задержку
             time.sleep(0.001)
+
+        # Создание объекта банка
 
 
 bank = Bank()
@@ -86,3 +81,4 @@ take_thread.join()
 
 # Итоговый баланс
 print(f'Итоговый баланс: {bank.balance}')
+

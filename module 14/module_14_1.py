@@ -71,7 +71,6 @@ cursor.execute('''
 ''')
 conn.commit()
 
-# Удаляем каждую 3ю запись
 cursor.execute('''
     DELETE FROM Users
     WHERE id IN (SELECT id FROM Users WHERE (rowid - 1) % 3 = 0)

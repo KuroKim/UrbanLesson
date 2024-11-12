@@ -1,3 +1,27 @@
+# Изменения в Telegram-бот:
+# Кнопки главного меню дополните кнопкой "Регистрация".
+# Напишите новый класс состояний RegistrationState с следующими объектами класса State: username, email, age, balance(по умолчанию 1000).
+# Создайте цепочку изменений состояний RegistrationState.
+# Фукнции цепочки состояний RegistrationState:
+# sing_up(message):
+# Оберните её в message_handler, который реагирует на текстовое сообщение 'Регистрация'.
+# Эта функция должна выводить в Telegram-бот сообщение "Введите имя пользователя (только латинский алфавит):".
+# После ожидать ввода имени в атрибут RegistrationState.username при помощи метода set.
+# set_username(message, state):
+# Оберните её в message_handler, который реагирует на состояние RegistrationState.username.
+# Если пользователя message.text ещё нет в таблице, то должны обновляться данные в состоянии username на message.text. Далее выводится сообщение "Введите свой email:" и принимается новое состояние RegistrationState.email.
+# Если пользователь с таким message.text есть в таблице, то выводить "Пользователь существует, введите другое имя" и запрашивать новое состояние для RegistrationState.username.
+# set_email(message, state):
+# Оберните её в message_handler, который реагирует на состояние RegistrationState.email.
+# Эта функция должна обновляться данные в состоянии RegistrationState.email на message.text.
+# Далее выводить сообщение "Введите свой возраст:":
+# После ожидать ввода возраста в атрибут RegistrationState.age.
+# set_age(message, state):
+# Оберните её в message_handler, который реагирует на состояние RegistrationState.age.
+# Эта функция должна обновляться данные в состоянии RegistrationState.age на message.text.
+# Далее брать все данные (username, email и age) из состояния и записывать в таблицу Users при помощи ранее написанной crud-функции add_user.
+# В конце завершать приём состояний при помощи метода finish().
+
 import asyncio
 import logging
 import os
@@ -7,7 +31,8 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, FSInputFile
+from aiogram.types import (KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, FSInputFile,
+                           Message)
 
 from Bot_Token import BOT_TOKEN
 
@@ -28,9 +53,17 @@ class UserState(StatesGroup):
     weight = State()
 
 
+class RegistrationState(StatesGroup):
+    username = State()
+    email = State()
+    age = F.Field()
+    balance = F.Field(default=1000)
+
+
 kbm = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Рассчитать"), KeyboardButton(text="Информация"), KeyboardButton(text="Купить")]
+        [KeyboardButton(text="Рассчитать"), KeyboardButton(text="Информация"), KeyboardButton(text="Купить"),
+         KeyboardButton(text="Регистрация")]
     ],
     resize_keyboard=True
 )
@@ -51,6 +84,40 @@ kbi_b = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Товар 3', callback_data='product_buying')],
     [InlineKeyboardButton(text='Товар 4', callback_data='product_buying')]
 ])
+
+
+@dp.message(F.text == "Регистрация")
+async def sign_up(message: Message, state: FSMContext):
+    await message.answer('Введите имя пользователя (только латинский алфавит):')
+    await state.set_state(RegistrationState.username)
+
+
+@dp.message(F.state == RegistrationState.username)
+async def set_username(message: Message, state: FSMContext):
+    if not is_included(message.text):
+        await state.update_data(username=message.text)
+        await message.answer('Введите свой email:')
+        await state.set_state(RegistrationState.email)
+    else:
+        await message.answer("Пользователь существует, введите другое имя.")
+        await state.set_state(RegistrationState.username)
+
+
+@dp.message(F.state == RegistrationState.email)
+async def set_email(message: Message, state: FSMContext):
+    await state.update_data(email=message.text)
+    await message.answer('Введите свой возраст:')
+    await state.set_state(RegistrationState.age)
+
+
+@dp.message(F.state == RegistrationState.age, lambda message: message.text.isdigit())
+async def set_age(message: Message, state: FSMContext):
+    await state.update_data(age=int(message.text))
+    data = await state.get_data()
+    await add_user(data['username'], data['email'], data['age'])
+    await state.clear()  # Завершаем регистрацию
+    await message.answer("Регистрация завершена! Добро пожаловать!")
+    await bot.send_photo(message.chat.id, photo=FSInputFile(os.path.join(img_dir, 'success.png')))
 
 
 @dp.message(CommandStart())

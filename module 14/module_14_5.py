@@ -1,3 +1,4 @@
+# Aiogram 3.23
 # Изменения в Telegram-бот:
 # Кнопки главного меню дополните кнопкой "Регистрация".
 # Напишите новый класс состояний RegistrationState с следующими объектами класса State: username, email, age, balance(по умолчанию 1000).
@@ -56,7 +57,7 @@ class UserState(StatesGroup):
 class RegistrationState(StatesGroup):
     username = State()
     email = State()
-    age = F.Field()
+    age = State()
     balance = F.Field(default=1000)
 
 
@@ -87,37 +88,44 @@ kbi_b = InlineKeyboardMarkup(inline_keyboard=[
 
 
 @dp.message(F.text == "Регистрация")
-async def sign_up(message: Message, state: FSMContext):
-    await message.answer('Введите имя пользователя (только латинский алфавит):')
+async def sign_up(message: types.Message, state: FSMContext):
+    await message.answer("Введите имя пользователя (только латинский алфавит):")
     await state.set_state(RegistrationState.username)
 
 
-@dp.message(F.state == RegistrationState.username)
-async def set_username(message: Message, state: FSMContext):
-    if not is_included(message.text):
-        await state.update_data(username=message.text)
-        await message.answer('Введите свой email:')
-        await state.set_state(RegistrationState.email)
+@dp.message(RegistrationState.username)
+async def set_username(message: types.Message, state: FSMContext):
+    username = message.text
+    if is_included(username):  # Checks if user exists in the database
+        await message.answer("Пользователь существует, введите другое имя:")
     else:
-        await message.answer("Пользователь существует, введите другое имя.")
-        await state.set_state(RegistrationState.username)
+        await state.update_data(username=username)
+        await message.answer("Введите свой email:")
+        await state.set_state(RegistrationState.email)
 
 
-@dp.message(F.state == RegistrationState.email)
-async def set_email(message: Message, state: FSMContext):
-    await state.update_data(email=message.text)
-    await message.answer('Введите свой возраст:')
+@dp.message(RegistrationState.email)
+async def set_email(message: types.Message, state: FSMContext):
+    email = message.text
+    await state.update_data(email=email)
+    await message.answer("Введите свой возраст:")
     await state.set_state(RegistrationState.age)
 
 
-@dp.message(F.state == RegistrationState.age, lambda message: message.text.isdigit())
-async def set_age(message: Message, state: FSMContext):
-    await state.update_data(age=int(message.text))
-    data = await state.get_data()
-    await add_user(data['username'], data['email'], data['age'])
-    await state.clear()  # Завершаем регистрацию
-    await message.answer("Регистрация завершена! Добро пожаловать!")
-    await bot.send_photo(message.chat.id, photo=FSInputFile(os.path.join(img_dir, 'success.png')))
+@dp.message(RegistrationState.age)
+async def set_age(message: types.Message, state: FSMContext):
+    try:
+        age = int(message.text)
+        data = await state.get_data()
+        username = data['username']
+        email = data['email']
+
+        add_user(username=username, email=email, age=age)
+
+        await message.answer("Регистрация завершена!")
+        await state.clear()
+    except ValueError:
+        await message.answer("Пожалуйста, введите числовое значение для возраста.")
 
 
 @dp.message(CommandStart())

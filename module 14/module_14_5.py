@@ -123,6 +123,7 @@ async def set_age(message: types.Message, state: FSMContext):
         add_user(username=username, email=email, age=age)
 
         await message.answer("Регистрация завершена!")
+        await bot.send_photo(message.chat.id, photo=FSInputFile(os.path.join(img_dir, 'success.png')))
         await state.clear()
     except ValueError:
         await message.answer("Пожалуйста, введите числовое значение для возраста.")

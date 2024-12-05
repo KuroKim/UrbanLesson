@@ -30,7 +30,7 @@
 # Не забудьте написать валидацию для каждого запроса, аналогично предыдущему заданию.
 
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Path
 
 app = FastAPI()
 
@@ -43,26 +43,36 @@ def get_users():
 
 
 @app.post("/user/{username}/{age}")
-def add_user(username: str, age: int):
+def add_user(
+    username: str = Path(..., min_length=3, max_length=50, description="Имя пользователя", examples={"example": {"value": "UrbanUser"}}),
+    age: int = Path(..., ge=1, le=120, description="Возраст пользователя, от 1 до 120", examples={"example": {"value": 25}})
+):
     if age <= 0:
         raise HTTPException(status_code=400, detail="Возраст должен быть положительным числом.")
+
     new_id = str(max(map(int, users.keys())) + 1)
     users[new_id] = f"Имя: {username}, возраст: {age}"
     return f"User {new_id} is registered"
 
 
 @app.put("/user/{user_id}/{username}/{age}")
-def update_user(user_id: str, username: str, age: int):
+def update_user(
+    user_id: int = Path(..., ge=1, le=100, description="ID пользователя, от 1 до 100", examples={"example": {"value": 1}}),
+    username: str = Path(..., min_length=3, max_length=50, description="Имя пользователя", examples={"example": {"value": "UrbanUpdated"}}),
+    age: int = Path(..., ge=1, le=120, description="Возраст пользователя, от 1 до 120", examples={"example": {"value": 30}})
+):
+    user_id = str(user_id)
     if user_id not in users:
         raise HTTPException(status_code=404, detail="Пользователь с данным ID не найден.")
-    if age <= 0:
-        raise HTTPException(status_code=400, detail="Возраст должен быть положительным числом.")
     users[user_id] = f"Имя: {username}, возраст: {age}"
     return f"The user {user_id} is updated"
 
 
 @app.delete("/user/{user_id}")
-def delete_user(user_id: str):
+def delete_user(
+    user_id: int = Path(..., ge=1, le=100, description="ID пользователя, от 1 до 100", examples={"example": {"value": 1}})
+):
+    user_id = str(user_id)
     if user_id not in users:
         raise HTTPException(status_code=404, detail="Пользователь с данным ID не найден.")
     del users[user_id]

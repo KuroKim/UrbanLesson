@@ -7,7 +7,7 @@ app = FastAPI()
 
 @app.get("/")
 def welcome():
-    return {"message": "Welcome to Taskmanager"}
+    return {"message": "Welcome to Taskmanager, http://127.0.0.1:8000/docs"}
 
 
 app.include_router(user_router)
